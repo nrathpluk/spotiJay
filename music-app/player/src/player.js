@@ -11,7 +11,6 @@ const currentTimeEl = document.getElementById("current-time");
 const durationEl = document.getElementById("duration");
 const songTitle = document.getElementById("song-title");
 const songSubtitle = document.getElementById("song-subtitle");
-const playerSongName = document.getElementById("player-song-name");
 const nowPlayingLabel = document.getElementById("now-playing-label");
 const playlistEl = document.getElementById("playlist");
 const playlistEmpty = document.getElementById("playlist-empty");
@@ -19,7 +18,6 @@ const playIcon = document.getElementById("play-icon");
 const albumArt = document.getElementById("album-art");
 const visualizer = document.getElementById("visualizer");
 const dropZone = document.getElementById("drop-zone");
-const fileInput = document.getElementById("file-input");
 
 const API = "https://music-api.qazsamui004.workers.dev";
 
@@ -81,6 +79,21 @@ volumeSlider.addEventListener("input", () => {
 
 volumeFill.style.width = "100%";
 
+let lastVolume = 1;
+
+window.toggleMute = function () {
+  if (player.volume > 0) {
+    lastVolume = player.volume;
+    player.volume = 0;
+    volumeSlider.value = 0;
+    volumeFill.style.width = "0%";
+  } else {
+    player.volume = lastVolume;
+    volumeSlider.value = lastVolume;
+    volumeFill.style.width = (lastVolume * 100) + "%";
+  }
+};
+
 
 // ---------- Play / Pause ----------
 window.togglePlay = function () {
@@ -96,16 +109,18 @@ window.togglePlay = function () {
 player.addEventListener("play", () => {
 
   playIcon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
-  albumArt.classList.add("spinning");
-  visualizer.classList.add("active");
+  if(albumArt) albumArt.classList.add("spinning");
+  if(visualizer) visualizer.classList.add("active");
+  document.getElementById("btn-play").classList.add("playing");
 
 });
 
 player.addEventListener("pause", () => {
 
   playIcon.innerHTML = '<polygon points="8,5 19,12 8,19"/>';
-  albumArt.classList.remove("spinning");
-  visualizer.classList.remove("active");
+  if(albumArt) albumArt.classList.remove("spinning");
+  if(visualizer) visualizer.classList.remove("active");
+  document.getElementById("btn-play").classList.remove("playing");
 
 });
 
@@ -154,8 +169,6 @@ function updateSongDisplay() {
   songTitle.textContent = name;
   songSubtitle.textContent = `Track ${currentIndex + 1} of ${playlist.length}`;
 
-  playerSongName.textContent = name;
-
 }
 
 
@@ -180,6 +193,11 @@ function renderPlaylist() {
     const numSpan = document.createElement("span");
     numSpan.className = "song-number";
     numSpan.textContent = (index + 1).toString().padStart(2, "0");
+    
+    // Add third equalizer bar inside the number span
+    const eqBar = document.createElement("i");
+    eqBar.className = "eq-bar";
+    numSpan.appendChild(eqBar);
 
     const nameSpan = document.createElement("span");
     nameSpan.className = "song-name-text";
@@ -321,29 +339,15 @@ async function uploadFileToR2(file) {
 
 
 // ---------- Drag & Drop ----------
+document.addEventListener("dragover", (e) => {
+  e.preventDefault();
+});
+
 document.addEventListener("drop", async (e) => {
 
   e.preventDefault();
 
   const files = e.dataTransfer.files;
-
-  if (files.length > 0) {
-
-    for (let file of files) {
-
-      await uploadFileToR2(file);
-
-    }
-
-  }
-
-});
-
-
-// ---------- File Input ----------
-fileInput.addEventListener("change", async (e) => {
-
-  const files = e.target.files;
 
   if (files.length > 0) {
 
