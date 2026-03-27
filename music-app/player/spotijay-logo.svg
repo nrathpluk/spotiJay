@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a0533"/>
+      <stop offset="100%" stop-color="#0d0d1a"/>
+    </linearGradient>
+    <linearGradient id="main-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#ec4899"/>
+    </linearGradient>
+    <linearGradient id="glow-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c084fc" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#f472b6" stop-opacity="0.1"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="soft-glow">
+      <feGaussianBlur stdDeviation="15" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="256" fill="url(#bg-grad)"/>
+
+  <!-- Glow orb behind icon -->
+  <circle cx="256" cy="230" r="130" fill="url(#glow-grad)"/>
+
+  <!-- Outer ring -->
+  <circle cx="256" cy="256" r="200" fill="none" stroke="url(#main-grad)" stroke-width="2" stroke-opacity="0.3"/>
+  <circle cx="256" cy="256" r="180" fill="none" stroke="url(#main-grad)" stroke-width="1" stroke-opacity="0.15"/>
+
+  <!-- Music note icon (centered, large) -->
+  <g filter="url(#glow)" transform="translate(256,230) scale(1)">
+    <!-- Note stem -->
+    <rect x="20" y="-90" width="14" height="100" rx="7" fill="url(#main-grad)"/>
+    <!-- Note head -->
+    <ellipse cx="10" cy="14" rx="26" ry="20" fill="url(#main-grad)" transform="rotate(-15, 10, 14)"/>
+    <!-- Flag 1 -->
+    <path d="M34 -90 Q80 -60 70 -20" stroke="url(#main-grad)" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <!-- Flag 2 -->
+    <path d="M34 -65 Q78 -38 68 0" stroke="url(#main-grad)" stroke-width="10" fill="none" stroke-linecap="round" stroke-opacity="0.7"/>
+  </g>
+
+  <!-- Sound wave arcs -->
+  <g filter="url(#soft-glow)" opacity="0.6">
+    <path d="M 310 180 Q 360 230 310 280" fill="none" stroke="url(#main-grad)" stroke-width="6" stroke-linecap="round"/>
+    <path d="M 330 160 Q 395 230 330 300" fill="none" stroke="url(#main-grad)" stroke-width="4" stroke-linecap="round" stroke-opacity="0.5"/>
+  </g>
+
+  <!-- SJ text -->
+  <text x="256" y="390" 
+    font-family="Georgia, serif" 
+    font-size="72" 
+    font-weight="bold"
+    letter-spacing="8"
+    text-anchor="middle" 
+    fill="url(#main-grad)"
+    filter="url(#glow)">SJ</text>
+
+  <!-- Tagline dots -->
+  <circle cx="196" cy="420" r="3" fill="#a855f7" opacity="0.6"/>
+  <circle cx="316" cy="420" r="3" fill="#ec4899" opacity="0.6"/>
+  <line x1="206" y1="420" x2="306" y2="420" stroke="url(#main-grad)" stroke-width="1" stroke-opacity="0.4"/>
+
+</svg>
