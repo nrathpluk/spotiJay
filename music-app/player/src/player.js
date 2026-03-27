@@ -234,7 +234,7 @@ function updateSongDisplay() {
 
 
 // ---------- Playlist Rendering ----------
-const MAX_RENDERED = 200;
+const MAX_RENDERED = 50;
 
 function renderPlaylist() {
   playlistEl.innerHTML = "";

@@ -12,12 +12,12 @@
     "windows": [
       {
         "title": "SpotiJay",
-        "width": 800,
-        "height": 600,
+        "width": 750,
+        "height": 550,
         "resizable": true,
         "fullscreen": false,
         "devtools": false,
-        "additionalBrowserArgs": "--disable-gpu --disable-software-rasterizer --js-flags=--max-old-space-size=256"
+        "additionalBrowserArgs": "--disable-gpu --disable-software-rasterizer --disable-gpu-compositing --disable-smooth-scrolling --disable-extensions --disable-component-update --disable-background-networking --disable-default-apps --disable-sync --no-first-run --disable-breakpad --disable-component-extensions-with-background-pages --disable-ipc-flooding-protection --js-flags=--max-old-space-size=64 --js-flags=--lite-mode"
       }
     ],
     "security": {
