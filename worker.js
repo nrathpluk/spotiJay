@@ -106,7 +106,7 @@ export default {
       }));
 
       const token = await createToken(username);
-      return json({ token, username });
+      return json({ token, username, isAdmin: username.toLowerCase() === 'admin' });
     }
 
     // ─── LOGIN ────────────────────────────────────────
@@ -126,7 +126,7 @@ export default {
       if (hash !== user.passwordHash) return json({ error: "Invalid username or password" }, 401);
 
       const token = await createToken(user.username);
-      return json({ token, username: user.username });
+      return json({ token, username: user.username, isAdmin: user.username.toLowerCase() === 'admin' });
     }
 
     // ─── ME (verify token) ───────────────────────────
@@ -136,7 +136,7 @@ export default {
       if (!auth || !auth.startsWith("Bearer ")) return json({ error: "Unauthorized" }, 401);
       const username = await verifyToken(auth.slice(7));
       if (!username) return json({ error: "Invalid or expired token" }, 401);
-      return json({ username });
+      return json({ username, isAdmin: username.toLowerCase() === 'admin' });
     }
 
     // ─── LIST SONGS ───────────────────────────────────
@@ -152,9 +152,19 @@ export default {
       });
     }
 
+    // ─── ADMIN CHECK HELPER ──────────────────────────
+
+    async function isAdminRequest(req) {
+      const auth = req.headers.get("Authorization");
+      if (!auth || !auth.startsWith("Bearer ")) return false;
+      const username = await verifyToken(auth.slice(7));
+      return username && username.toLowerCase() === "admin";
+    }
+
     // ─── UPLOAD ──────────────────────────────────────
 
     if (request.method === "POST" && url.pathname === "/upload") {
+      if (!(await isAdminRequest(request))) return json({ error: "Forbidden: Admin Only" }, 403);
       const form = await request.formData();
       const file = form.get("file");
       if (!file) return new Response("No file", { status: 400, headers: cors });
@@ -165,6 +175,7 @@ export default {
     // ─── DELETE ──────────────────────────────────────
 
     if (request.method === "DELETE" && url.pathname === "/delete") {
+      if (!(await isAdminRequest(request))) return json({ error: "Forbidden: Admin Only" }, 403);
       const body = await request.json();
       await env.MUSIC_BUCKET.delete(body.name);
       return new Response("deleted", { headers: cors });
@@ -173,6 +184,7 @@ export default {
     // ─── IMPORT PLAYLIST ─────────────────────────────
 
     if (request.method === "POST" && url.pathname === "/import") {
+      if (!(await isAdminRequest(request))) return json({ error: "Forbidden: Admin Only" }, 403);
       const body = await request.json();
       const playlistRes = await fetch(body.url);
       const playlistText = await playlistRes.text();

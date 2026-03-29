@@ -25,6 +25,8 @@ let playlist = [];
 let names = [];
 let currentIndex = 0;
 
+const isAdmin = () => localStorage.getItem("spotijay_is_admin") === "true";
+
 
 // ---------- Volume Persistence ----------
 const VOLUME_KEY = "spotijay_volume";
@@ -265,63 +267,65 @@ function renderPlaylist() {
     nameSpan.className = "song-name-text";
     nameSpan.textContent = name;
 
-    const deleteBtn = document.createElement("button");
-    deleteBtn.className = "song-delete-btn";
-    deleteBtn.setAttribute("aria-label", "Delete track");
-    deleteBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>`;
+    let deleteBtn = null;
+    if (isAdmin()) {
+      deleteBtn = document.createElement("button");
+      deleteBtn.className = "song-delete-btn";
+      deleteBtn.setAttribute("aria-label", "Delete track");
+      deleteBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>`;
 
-deleteBtn.onclick = async (e) => {
-  e.stopPropagation();
-  if (!confirm(`Delete "${name}"?`)) return;
+      deleteBtn.onclick = async (e) => {
+        e.stopPropagation();
+        if (!confirm(`Delete "${name}"?`)) return;
 
-  //  อันนี้ปิดปุ่มทันที
-  deleteBtn.disabled = true;
-  deleteBtn.style.opacity = "0.5";
-  deleteBtn.style.pointerEvents = "none";
+        deleteBtn.disabled = true;
+        deleteBtn.style.opacity = "0.5";
+        deleteBtn.style.pointerEvents = "none";
 
-  try {
-    const filename = decodeURIComponent(playlist[index].split("/").pop());
-    const res = await fetch(`${API}/delete`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${API_KEY}`
-      },
-      body: JSON.stringify({ name: filename })
-    });
-    if (!res.ok) throw new Error("delete failed");
+        try {
+          const filename = decodeURIComponent(playlist[index].split("/").pop());
+          const token = localStorage.getItem("spotijay_token");
+          const res = await fetch(`${API}/delete`, {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ name: filename })
+          });
+          if (!res.ok) throw new Error("delete failed");
 
-    const wasPlaying = index === currentIndex;
-    const wasActive = !player.paused;
-    names.splice(index, 1);
-    playlist.splice(index, 1);
+          const wasPlaying = index === currentIndex;
+          const wasActive = !player.paused;
+          names.splice(index, 1);
+          playlist.splice(index, 1);
 
-    if (playlist.length === 0) {
-      currentIndex = 0;
-      player.pause();
-      player.src = "";
-    } else if (wasPlaying) {
-      currentIndex = Math.min(index, playlist.length - 1);
-      loadTrack(currentIndex, wasActive);
-    } else if (index < currentIndex) {
-      currentIndex--;
+          if (playlist.length === 0) {
+            currentIndex = 0;
+            player.pause();
+            player.src = "";
+          } else if (wasPlaying) {
+            currentIndex = Math.min(index, playlist.length - 1);
+            loadTrack(currentIndex, wasActive);
+          } else if (index < currentIndex) {
+            currentIndex--;
+          }
+          updateSongDisplay();
+          renderPlaylist();
+        } catch (err) {
+          console.error(err);
+          alert("Error deleting song");
+
+          deleteBtn.disabled = false;
+          deleteBtn.style.opacity = "";
+          deleteBtn.style.pointerEvents = "";
+        }
+      };
     }
-    updateSongDisplay();
-    renderPlaylist();
-  } catch (err) {
-    console.error(err);
-    alert("Error deleting song");
-
-    //  ฃเปิดปุ่มคืนเฉพาะตอน error 
-    deleteBtn.disabled = false;
-    deleteBtn.style.opacity = "";
-    deleteBtn.style.pointerEvents = "";
-  }
-};
 
     li.appendChild(numSpan);
     li.appendChild(nameSpan);
-    li.appendChild(deleteBtn);
+    if (deleteBtn) li.appendChild(deleteBtn);
 
     li.onclick = () => {
       currentIndex = index;
@@ -407,9 +411,10 @@ function isValidAudioFile(file) {
 async function uploadFileToR2(file) {
   const formData = new FormData();
   formData.append("file", file);
+  const token = localStorage.getItem("spotijay_token");
   const res = await fetch(API + "/upload", {
     method: "POST",
-    headers: { "Authorization": `Bearer ${API_KEY}` },
+    headers: { "Authorization": `Bearer ${token}` },
     body: formData
   });
   if (res.ok) { console.log("Uploaded:", file.name); loadSongsFromAPI(); }
@@ -439,6 +444,24 @@ document.addEventListener("drop", async (e) => {
 const uploadBtn = document.getElementById("upload-btn");
 const uploadInput = document.getElementById("upload-m4a");
 uploadBtn.onclick = () => uploadInput.click();
+
+function updateAdminUI() {
+  if (isAdmin()) {
+    document.querySelector(".upload-section").style.display = "block";
+  } else {
+    document.querySelector(".upload-section").style.display = "none";
+  }
+}
+
+// Check admin UI on init
+updateAdminUI();
+
+// Update on login success
+window.addEventListener("auth-success", () => {
+  updateAdminUI();
+  // re-render the playlist to show/hide delete buttons
+  renderPlaylist();
+});
 
 //  ให้ file picker รับไฟล์เดียวกับ drag & drop
 uploadInput.setAttribute("accept", ".m4a,.mp3,.wav,.ogg,.flac,.aac,audio/*");

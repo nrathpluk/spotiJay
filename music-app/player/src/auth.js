@@ -31,6 +31,7 @@ function hideAuthScreen(username) {
   document.getElementById("app").style.display = "grid";
   const badge = document.getElementById("user-badge");
   if (badge) badge.textContent = username;
+  window.dispatchEvent(new Event("auth-success"));
 }
 
 function showError(msg) {
@@ -72,6 +73,7 @@ async function checkAuth() {
     });
     if (res.ok) {
       const data = await res.json();
+      localStorage.setItem("spotijay_is_admin", data.isAdmin ? "true" : "false");
       hideAuthScreen(data.username);
     } else {
       clearToken();
@@ -108,6 +110,7 @@ async function handleLogin(e) {
     const data = await res.json();
     if (!res.ok) { showError(data.error || "Login failed"); return; }
     saveToken(data.token);
+    localStorage.setItem("spotijay_is_admin", data.isAdmin ? "true" : "false");
     hideAuthScreen(data.username);
   } catch {
     showError("Network error. Please try again.");
@@ -144,6 +147,7 @@ async function handleRegister(e) {
     const data = await res.json();
     if (!res.ok) { showError(data.error || "Registration failed"); return; }
     saveToken(data.token);
+    localStorage.setItem("spotijay_is_admin", data.isAdmin ? "true" : "false");
     hideAuthScreen(data.username);
   } catch {
     showError("Network error. Please try again.");
@@ -157,6 +161,7 @@ async function handleRegister(e) {
 
 function logout() {
   clearToken();
+  localStorage.removeItem("spotijay_is_admin");
   showAuthScreen();
   showLoginTab();
   // Reset inputs
