@@ -1,0 +1,28 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "spotijay-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-05-18",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+  "vars": {
+    "CORS_ORIGINS": "tauri://localhost,https://tauri.localhost",
+    "STREAM_URL_TTL_SECONDS": "300",
+    "RATE_LIMIT_PER_MINUTE": "60"
+  },
+  "kv_namespaces": [
+    {
+      "binding": "USERS",
+      "id": "replace-with-users-kv-namespace-id"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "MUSIC_BUCKET",
+      "bucket_name": "replace-with-music-r2-bucket-name"
+    }
+  ]
+}
