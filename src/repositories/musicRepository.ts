@@ -22,8 +22,8 @@ export class MusicRepository {
     await this.env.MUSIC_BUCKET.put(name, body);
   }
 
-  async get(name: string): Promise<R2ObjectBody | null> {
-    return this.env.MUSIC_BUCKET.get(name);
+  async get(name: string, range?: R2Range): Promise<R2ObjectBody | null> {
+    return this.env.MUSIC_BUCKET.get(name, range ? { range } : undefined);
   }
 
   async delete(name: string): Promise<void> {
